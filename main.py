@@ -1,5 +1,5 @@
-from typing import Optional, List
-from fastapi import FastAPI, HTTPException, Header, status
+from typing import List
+from fastapi import FastAPI, HTTPException, status
 import uvicorn
 from loc_db import books
 from models.book_model import Book, BookUpdateModel
