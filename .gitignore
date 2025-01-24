@@ -5,3 +5,4 @@ note.txt
 
 # Ignore Python cache
 __pycache__/
+__pycache__
