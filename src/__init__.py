@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-import uvicorn
 from src.books.routes import book_router
 from contextlib import asynccontextmanager
 from src.db.main import init_db
