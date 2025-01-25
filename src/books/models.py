@@ -1,8 +1,12 @@
 from datetime import date, datetime
+from typing import Optional, TYPE_CHECKING
 import uuid
 from sqlalchemy import Column
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, Relationship, SQLModel
 import sqlalchemy.dialects.postgresql as pg
+
+if TYPE_CHECKING:
+    from src.auth.models import User
 
 
 class Book(SQLModel, table=True):
@@ -17,12 +21,14 @@ class Book(SQLModel, table=True):
     published_date: date
     page_count: int
     language: str
+    user_id: Optional[uuid.UUID] = Field(default=None, foreign_key="users.id")
     created_at: datetime = Field(
         sa_column=Column(pg.TIMESTAMP, nullable=False, default=datetime.now())
     )
     updated_at: datetime = Field(
         sa_column=Column(pg.TIMESTAMP, nullable=False, default=datetime.now())
     )
+    user: Optional["User"] = Relationship(back_populates="books")
 
 
 def __repr__(self):

@@ -6,6 +6,7 @@ from src.auth.dependencies import AccessTokenBearer, RefreshTokenBearer
 from src.auth.models import User
 from src.auth.schemas import (
     LoginResponseModel,
+    UserBookModel,
     UserCreateModel,
     UserLoginModel,
     UserModel,
@@ -86,7 +87,7 @@ async def get_new_access_token(token_details: dict = Depends(RefreshTokenBearer(
     )
 
 
-@auth_router.get("/me")
+@auth_router.get("/me", response_model=UserBookModel)
 async def get_current_user(
     user: User = Depends(get_current_user), _: bool = Depends(role_checker)
 ):
