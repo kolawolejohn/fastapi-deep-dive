@@ -1,6 +1,7 @@
+from fastapi import HTTPException, status
 from sqlmodel import select
 
-from src.auth.schemas import UserCreateModel
+from src.auth.schemas import UserCreateModel, UserLoginModel
 from src.auth.utils import generate_password_hash
 from .models import User
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -28,3 +29,6 @@ class UserService:
         session.add(new_user)
         await session.commit()
         return new_user
+
+    async def user_login(self, data: UserLoginModel, session: AsyncSession):
+        pass
