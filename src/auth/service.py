@@ -25,7 +25,11 @@ class UserService:
     async def create_user(self, data: UserCreateModel, session: AsyncSession):
         data_dict = data.model_dump()
         new_user = User(**data_dict)
-        new_user.password_hash = generate_password_hash(data_dict["password"])
+        # new_user.password_hash = generate_password_hash(data_dict["password"])
+        new_user = {
+            "password_hash": generate_password_hash(data_dict["password"]),
+            "role": "user",
+        }
         session.add(new_user)
         await session.commit()
         return new_user
