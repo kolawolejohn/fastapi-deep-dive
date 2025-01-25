@@ -1,6 +1,5 @@
 from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.responses import JSONResponse
 
 from src.auth.schemas import (
     LoginResponseModel,
@@ -62,6 +61,5 @@ async def user_login(
         "user": {
             "email": user.email,
             "id": str(user.id),
-            "username": user.username,
         },
     }
