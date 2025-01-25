@@ -8,8 +8,6 @@ from src.config import Config
 
 password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# ACCESS_TOKEN_EXPIRY = 3600
-
 
 def generate_password_hash(password: str) -> str:
     hashed_password = password_context.hash(password)
