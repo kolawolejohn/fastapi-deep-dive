@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
 
 from src.auth.dependencies import AccessTokenBearer, RefreshTokenBearer
+from src.auth.models import User
 from src.auth.schemas import (
     LoginResponseModel,
     UserCreateModel,
@@ -12,12 +13,14 @@ from src.auth.schemas import (
 from src.auth.service import UserService
 from src.db.main import get_session
 from sqlmodel.ext.asyncio.session import AsyncSession
-from src.auth.utils import create_access_token, decode_token, verify_password
+from src.auth.utils import create_access_token, verify_password
 from src.config import Config
 from src.db.redis import add_jti_to_blocklist
+from src.auth.dependencies import get_current_user, RoleChecker
 
 auth_router = APIRouter()
 user_service = UserService()
+role_checker = RoleChecker(["admin", "user"])
 
 
 @auth_router.post(
@@ -49,10 +52,10 @@ async def user_login(
         )
 
     access_token = create_access_token(
-        data={"email": user.email, "user_id": str(user.id)}
+        data={"email": user.email, "user_id": str(user.id), "role": user.role}
     )
     refresh_token = create_access_token(
-        data={"email": user.email, "user_id": str(user.id)},
+        data={"email": user.email, "user_id": str(user.id), "role": user.role},
         refresh=True,
         expiry=timedelta(days=Config.REFRESH_TOKEN_EXPIRY),
     )
@@ -81,6 +84,13 @@ async def get_new_access_token(token_details: dict = Depends(RefreshTokenBearer(
         status_code=status.HTTP_400_BAD_REQUEST,
         detail="Invalid or expired token",
     )
+
+
+@auth_router.get("/me")
+async def get_current_user(
+    user: User = Depends(get_current_user), _: bool = Depends(role_checker)
+):
+    return user
 
 
 @auth_router.get("/logout")
