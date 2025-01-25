@@ -6,7 +6,7 @@ import jwt
 from passlib.context import CryptContext
 from src.config import Config
 
-password_context = CryptContext(schemes=["bcrypt"])
+password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # ACCESS_TOKEN_EXPIRY = 3600
 
@@ -39,24 +39,12 @@ def create_access_token(
         algorithm=Config.JWT_ALGORITHM,
     )
     return token
-    # payload = {}
-    # payload["user"] = data
-    # payload["exp"] = datetime.now() + (
-    #     expiry if expiry is not None else timedelta(seconds=ACCESS_TOKEN_EXPIRY)
-    # )
-    # payload["jti"] = str(uuid.uuid4())
-    # payload["refresh"] = refresh
-    # token = jwt.encode(
-    #     payload=payload, key=Config.JWT_SECRET_KEY, algorithm=Config.JWT_ALGORITHM
-    # )
-
-    # return token
 
 
 def decode_token(token: str) -> Optional[dict]:
     try:
         token_data = jwt.decode(
-            jwt=token, key=Config.JWT_SECRET_KEY, algorithm=Config.JWT_ALGORITHM
+            jwt=token, key=Config.JWT_SECRET_KEY, algorithms=Config.JWT_ALGORITHM
         )
 
         return token_data

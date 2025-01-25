@@ -30,7 +30,6 @@ class UserLoginModel(BaseModel):
 class UserDetail(BaseModel):
     email: str
     id: str
-    username: str
 
 
 class LoginResponseModel(BaseModel):
