@@ -6,6 +6,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from src.auth.dependencies import get_current_user
 from src.db.main import get_session
 from src.db.models import Review, User
+from src.errors import InternalServerError, ReviewNotFound
 from src.reviews.schemas import ReviewCreateModel, ReviewModel
 from src.reviews.service import ReviewService, get_review_service
 
@@ -37,10 +38,7 @@ async def add_review_to_book(
 
     except Exception as e:
         logger.exception("Unexpected error occurred: %s", e)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal server error",
-        )
+        raise InternalServerError()
 
 
 @review_router.get(
@@ -70,10 +68,7 @@ async def get_review_by_id(
         raise e
     except Exception as e:
         logger.exception(e)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal server error",
-        )
+        raise InternalServerError()
 
 
 @review_router.get(
@@ -106,10 +101,7 @@ async def get_reviews_by_user(
         raise e
     except Exception as e:
         logger.exception(e)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal server error",
-        )
+        raise InternalServerError()
 
 
 @review_router.patch(
@@ -144,10 +136,7 @@ async def update_review(
         raise e
     except Exception as e:
         logger.exception(e)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal server error",
-        )
+        raise InternalServerError()
 
 
 @review_router.delete(
@@ -173,6 +162,4 @@ async def delete_review(
     )
     if is_deleted:
         return None
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND, detail="Record not found"
-    )
+    raise ReviewNotFound()
