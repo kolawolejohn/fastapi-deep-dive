@@ -2,15 +2,20 @@ from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
 
-from src.auth.dependencies import AccessTokenBearer, RefreshTokenBearer
-from src.auth.models import User
+from src.auth.dependencies import (
+    AccessTokenBearer,
+    RefreshTokenBearer,
+    get_role_checker,
+)
+from src.db.models import User
 from src.auth.schemas import (
     LoginResponseModel,
+    UserBooksModel,
     UserCreateModel,
     UserLoginModel,
     UserModel,
 )
-from src.auth.service import UserService
+from src.auth.service import UserService, get_user_service
 from src.db.main import get_session
 from sqlmodel.ext.asyncio.session import AsyncSession
 from src.auth.utils import create_access_token, verify_password
@@ -19,15 +24,15 @@ from src.db.redis import add_jti_to_blocklist
 from src.auth.dependencies import get_current_user, RoleChecker
 
 auth_router = APIRouter()
-user_service = UserService()
-role_checker = RoleChecker(["admin", "user"])
 
 
 @auth_router.post(
     "/signup", status_code=status.HTTP_201_CREATED, response_model=UserModel
 )
 async def create_user_account(
-    data: UserCreateModel, session: AsyncSession = Depends(get_session)
+    data: UserCreateModel,
+    session: AsyncSession = Depends(get_session),
+    user_service: UserService = Depends(get_user_service),
 ):
     if await user_service.user_exists(data.email, session):
         raise HTTPException(
@@ -41,7 +46,9 @@ async def create_user_account(
     "/login", status_code=status.HTTP_200_OK, response_model=LoginResponseModel
 )
 async def user_login(
-    data: UserLoginModel, session: AsyncSession = Depends(get_session)
+    data: UserLoginModel,
+    session: AsyncSession = Depends(get_session),
+    user_service: UserService = Depends(get_user_service),
 ):
     email, password = data.email, data.password
     user = await user_service.get_user_by_email(email, session)
@@ -73,11 +80,8 @@ async def user_login(
 
 @auth_router.get("/refresh_token")
 async def get_new_access_token(token_details: dict = Depends(RefreshTokenBearer())):
-    expiry_timestamp = token_details["exp"]
-
-    if datetime.fromtimestamp(expiry_timestamp) > datetime.now():
+    if token_details["exp"] > datetime.now().timestamp():
         new_access_token = create_access_token(data=token_details["user"])
-
         return JSONResponse(content={"access_token": new_access_token})
 
     raise HTTPException(
@@ -86,9 +90,10 @@ async def get_new_access_token(token_details: dict = Depends(RefreshTokenBearer(
     )
 
 
-@auth_router.get("/me")
+@auth_router.get("/me", response_model=UserBooksModel)
 async def get_current_user(
-    user: User = Depends(get_current_user), _: bool = Depends(role_checker)
+    user: User = Depends(get_current_user),
+    _: bool = Depends(get_role_checker),
 ):
     return user
 

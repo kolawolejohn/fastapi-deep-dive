@@ -7,7 +7,7 @@ from src.db.redis import token_in_blocklist
 from src.db.main import get_session
 from sqlmodel.ext.asyncio.session import AsyncSession
 from src.auth.service import UserService
-from src.auth.models import User
+from src.db.models import User
 
 user_service = UserService()
 
@@ -91,3 +91,15 @@ class RoleChecker:
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Access denied, you are not allowed to perform this action",
         )
+
+
+async def get_role_checker():
+    return RoleChecker(["admin", "user"])
+
+
+async def admin_role_checker():
+    return RoleChecker(["admin"])
+
+
+async def user_role_checker():
+    return RoleChecker(["user", "admin"])
