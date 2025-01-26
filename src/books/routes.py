@@ -1,8 +1,8 @@
 from uuid import UUID
 from fastapi import APIRouter, HTTPException, status, Depends
 from typing import List
-from src.books.schemas import BookCreateModel, BookUpdateModel
-from src.books.models import Book
+from src.books.schemas import BookCreateModel, BookReviewDetailModel, BookUpdateModel
+from src.db.models import Book
 from sqlmodel.ext.asyncio.session import AsyncSession
 from src.db.main import get_session
 from src.books.service import BookService
@@ -63,11 +63,11 @@ async def create_book(
 @book_router.get(
     "/{id}",
     status_code=status.HTTP_200_OK,
-    response_model=Book,
+    response_model=BookReviewDetailModel,
     dependencies=[role_checker],
 )
 async def get_book(
-    id: UUID,
+    id: str,
     session: AsyncSession = Depends(get_session),
     token_details: dict = Depends(access_token_bearer),
 ) -> dict:
@@ -88,7 +88,7 @@ async def get_book(
     dependencies=[role_checker],
 )
 async def update_book(
-    id: UUID,
+    id: str,
     data: BookUpdateModel,
     session: AsyncSession = Depends(get_session),
     token_details: dict = Depends(access_token_bearer),
@@ -108,7 +108,7 @@ async def update_book(
     dependencies=[role_checker],
 )
 async def delete_book(
-    id: UUID,
+    id: str,
     session: AsyncSession = Depends(get_session),
     token_details: dict = Depends(access_token_bearer),
 ):

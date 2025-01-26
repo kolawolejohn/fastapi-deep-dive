@@ -1,6 +1,6 @@
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
-from src.books.models import Book
+from src.db.models import Book
 from datetime import datetime
 from src.books.schemas import BookCreateModel, BookUpdateModel
 
@@ -65,3 +65,7 @@ class BookService:
             return True
 
         return False
+
+
+async def get_book_service():
+    return await BookService()
