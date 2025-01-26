@@ -68,4 +68,4 @@ class BookService:
 
 
 async def get_book_service():
-    return await BookService()
+    return BookService()
