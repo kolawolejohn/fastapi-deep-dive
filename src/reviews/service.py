@@ -1,12 +1,20 @@
 import logging
 from typing import List
-from fastapi import Depends, status
+from fastapi import Depends
 from fastapi.exceptions import HTTPException
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 from src.db.models import Review
 from src.auth.service import UserService
 from src.books.service import BookService
+from src.errors import (
+    BookNotFound,
+    InternalServerError,
+    ReviewAlreadyExists,
+    ReviewNotFound,
+    UnauthorizedAccess,
+    UserNotFound,
+)
 from src.reviews.schemas import ReviewCreateModel
 
 logger = logging.getLogger(__name__)
@@ -28,19 +36,13 @@ class ReviewService:
 
             book = await self.book_service.get_book(id=book_id, session=session)
             if not book:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Book not found",
-                )
+                raise BookNotFound()
 
             user = await self.user_service.get_user_by_email(
                 email=user_email, session=session
             )
             if not user:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="User not found",
-                )
+                raise UserNotFound()
 
             existing_review = (
                 await session.exec(
@@ -51,10 +53,7 @@ class ReviewService:
             ).first()
 
             if existing_review:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="You have already reviewed this book",
-                )
+                raise ReviewAlreadyExists()
 
             review_data_dict = review_data.model_dump()
             new_review = Review(**review_data_dict, user=user, book=book)
@@ -70,10 +69,7 @@ class ReviewService:
         except Exception as e:
             logger.exception("Failed to add review to book: %s", e)
             await session.rollback()
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Internal server error",
-            )
+            raise InternalServerError()
 
     async def get_reviews_by_user(
         self,
@@ -94,10 +90,7 @@ class ReviewService:
             return reviews
         except Exception as e:
             logger.exception("Failed to fetch reviews by user: %s", e)
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Internal server error",
-            )
+            raise InternalServerError()
 
     async def get_review_by_id(
         self,
@@ -107,17 +100,11 @@ class ReviewService:
         try:
             review = await session.get(Review, id)
             if not review:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Review not found",
-                )
+                raise ReviewNotFound()
             return review
         except Exception as e:
             logger.exception("Failed to fetch review by ID: %s", e)
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Internal server error",
-            )
+            raise InternalServerError()
 
     async def update_review(
         self,
@@ -128,15 +115,9 @@ class ReviewService:
     ) -> Review:
         review = await session.get(Review, id)
         if not review:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Review not found",
-            )
+            raise ReviewNotFound()
         if review.user_id != user_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="You are not authorized to update this review",
-            )
+            raise UnauthorizedAccess()
 
         if review_data.rating is not None:
             review.rating = review_data.rating
@@ -157,15 +138,9 @@ class ReviewService:
     ):
         review = await session.get(Review, id)
         if not review:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Review not found",
-            )
+            raise ReviewNotFound()
         if review.user_id != user_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="You are not authorized to delete this review",
-            )
+            raise UnauthorizedAccess()
 
         await session.delete(review)
         await session.commit()
