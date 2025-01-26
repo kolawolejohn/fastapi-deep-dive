@@ -22,10 +22,10 @@ class User(SQLModel, table=True):
     is_verified: bool = False
     password_hash: str = Field(exclude=True)
     created_at: datetime = Field(
-        sa_column=Column(pg.TIMESTAMP, nullable=False, default=datetime.now())
+        sa_column=Column(pg.TIMESTAMP, nullable=False, default=datetime.now)
     )
     updated_at: datetime = Field(
-        sa_column=Column(pg.TIMESTAMP, nullable=False, default=datetime.now())
+        sa_column=Column(pg.TIMESTAMP, nullable=False, default=datetime.now)
     )
     books: List["Book"] = Relationship(
         back_populates="user", sa_relationship_kwargs={"lazy": "selectin"}
@@ -37,6 +37,11 @@ class User(SQLModel, table=True):
 
 def __repr__(self):
     return f"<User {self.username}>"
+
+
+class BookTag(SQLModel, table=True):
+    book_id: uuid.UUID = Field(default=None, foreign_key="books.id", primary_key=True)
+    tag_id: uuid.UUID = Field(default=None, foreign_key="tags.id", primary_key=True)
 
 
 class Book(SQLModel, table=True):
@@ -53,14 +58,19 @@ class Book(SQLModel, table=True):
     language: str
     user_id: Optional[uuid.UUID] = Field(default=None, foreign_key="users.id")
     created_at: datetime = Field(
-        sa_column=Column(pg.TIMESTAMP, nullable=False, default=datetime.now())
+        sa_column=Column(pg.TIMESTAMP, nullable=False, default=datetime.now)
     )
     updated_at: datetime = Field(
-        sa_column=Column(pg.TIMESTAMP, nullable=False, default=datetime.now())
+        sa_column=Column(pg.TIMESTAMP, nullable=False, default=datetime.now)
     )
     user: Optional["User"] = Relationship(back_populates="books")
     reviews: List["Review"] = Relationship(
         back_populates="book", sa_relationship_kwargs={"lazy": "selectin"}
+    )
+    tags: List["Tag"] = Relationship(
+        back_populates="books",
+        link_model=BookTag,
+        sa_relationship_kwargs={"lazy": "selectin"},
     )
 
 
@@ -79,10 +89,10 @@ class Review(SQLModel, table=True):
     user_id: Optional[uuid.UUID] = Field(default=None, foreign_key="users.id")
     book_id: Optional[uuid.UUID] = Field(default=None, foreign_key="books.id")
     created_at: datetime = Field(
-        sa_column=Column(pg.TIMESTAMP, nullable=False, default=datetime.now())
+        sa_column=Column(pg.TIMESTAMP, nullable=False, default=datetime.now)
     )
     updated_at: datetime = Field(
-        sa_column=Column(pg.TIMESTAMP, nullable=False, default=datetime.now())
+        sa_column=Column(pg.TIMESTAMP, nullable=False, default=datetime.now)
     )
     user: Optional["User"] = Relationship(back_populates="reviews")
     book: Optional["Book"] = Relationship(back_populates="reviews")
@@ -90,3 +100,20 @@ class Review(SQLModel, table=True):
 
 def __repr__(self):
     return f"<Review for {self.book_id} by user {self.user_id}>"
+
+
+class Tag(SQLModel, table=True):
+    __tablename__ = "tags"
+    id: uuid.UUID = Field(
+        sa_column=Column(pg.UUID, nullable=False, primary_key=True, default=uuid.uuid4)
+    )
+    name: str = Field(sa_column=Column(pg.VARCHAR, nullable=False))
+    created_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=datetime.now))
+    books: List["Book"] = Relationship(
+        link_model=BookTag,
+        back_populates="tags",
+        sa_relationship_kwargs={"lazy": "selectin"},
+    )
+
+    def __repr__(self) -> str:
+        return f"<Tag {self.name}>"
