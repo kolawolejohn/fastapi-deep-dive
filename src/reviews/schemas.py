@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 import uuid
 from pydantic import BaseModel, field_validator
 
@@ -14,8 +15,8 @@ class ReviewModel(BaseModel):
 
 
 class ReviewCreateModel(BaseModel):
-    rating: int
-    review_text: str
+    rating: Optional[int] = None
+    review_text: Optional[str] = None
 
     @field_validator("rating")
     def validate_rating(cls, value):
