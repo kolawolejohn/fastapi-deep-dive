@@ -1,4 +1,5 @@
 import logging
+from typing import List
 from fastapi import Depends, status
 from fastapi.exceptions import HTTPException
 from sqlmodel import select
@@ -73,6 +74,101 @@ class ReviewService:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Internal server error",
             )
+
+    async def get_reviews_by_user(
+        self,
+        user_id: str,
+        session: AsyncSession,
+        skip: int = 0,
+        limit: int = 10,
+    ) -> List[Review]:
+        try:
+            reviews = (
+                await session.exec(
+                    select(Review)
+                    .where(Review.user_id == user_id)
+                    .offset(skip)
+                    .limit(limit)
+                )
+            ).all()
+            return reviews
+        except Exception as e:
+            logger.exception("Failed to fetch reviews by user: %s", e)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Internal server error",
+            )
+
+    async def get_review_by_id(
+        self,
+        id: str,
+        session: AsyncSession,
+    ) -> Review:
+        try:
+            review = await session.get(Review, id)
+            if not review:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Review not found",
+                )
+            return review
+        except Exception as e:
+            logger.exception("Failed to fetch review by ID: %s", e)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Internal server error",
+            )
+
+    async def update_review(
+        self,
+        id: str,
+        user_id: str,
+        review_data: ReviewCreateModel,
+        session: AsyncSession,
+    ) -> Review:
+        review = await session.get(Review, id)
+        if not review:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Review not found",
+            )
+        if review.user_id != user_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You are not authorized to update this review",
+            )
+
+        if review_data.rating is not None:
+            review.rating = review_data.rating
+        if review_data.review_text is not None:
+            review.review_text = review_data.review_text
+
+        session.add(review)
+        await session.commit()
+        await session.refresh(review)
+
+        return review
+
+    async def delete_review(
+        self,
+        id: str,
+        user_id: str,
+        session: AsyncSession,
+    ):
+        review = await session.get(Review, id)
+        if not review:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Review not found",
+            )
+        if review.user_id != user_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You are not authorized to delete this review",
+            )
+
+        await session.delete(review)
+        await session.commit()
 
 
 def get_review_service(
