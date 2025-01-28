@@ -248,13 +248,13 @@ def register_error_handlers(app: FastAPI):
         ),
     )
 
-    app.add_exception_handler(
-        InternalServerError,
-        create_exception_handler(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            initial_detail={
+    @app.exception_handler(500)
+    async def internal_server_error(request, exc):
+
+        return JSONResponse(
+            content={
                 "message": "Oops! Something went wrong",
                 "error_code": "server_error",
             },
-        ),
-    )
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )

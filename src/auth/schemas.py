@@ -21,6 +21,8 @@ class UserModel(BaseModel):
     email: str
     first_name: str
     last_name: str
+    role: str
+    is_verified: bool
     password_hash: str = Field(exclude=True)
     created_at: datetime
     updated_at: datetime
@@ -46,3 +48,12 @@ class LoginResponseModel(BaseModel):
     access_token: str
     refresh_token: str
     user: UserDetail
+
+
+class EmailModel(BaseModel):
+    addresses: List[str]
+
+
+class RegisterUserResponseModel(BaseModel):
+    message: str
+    user: UserModel
