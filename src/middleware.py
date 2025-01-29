@@ -1,9 +1,9 @@
 import logging
 import time
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.responses import JSONResponse
+
 
 logger = logging.getLogger("uvicorn.access")
 logger.disabled = True
@@ -20,19 +20,6 @@ def register_middleware(app: FastAPI):
         message = f"{request.client.host}:{request.client.port} - {request.method} - {request.url.path} - {response.status_code} completed after {processing_time}s"
 
         print(message)
-        return response
-
-    @app.middleware("http")
-    async def authorization(request: Request, call_next):
-        if not "Authorization" in request.headers:
-            return JSONResponse(
-                content={
-                    "message": "not aunthenticated",
-                    "resolution": "Please provide valid credentials",
-                },
-                status_code=status.HTTP_401_UNAUTHORIZED,
-            )
-        response = await call_next(request)
         return response
 
     app.add_middleware(

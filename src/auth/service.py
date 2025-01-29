@@ -38,6 +38,13 @@ class UserService:
     async def user_login(self, data: UserLoginModel, session: AsyncSession):
         pass
 
+    async def update_user(self, user: User, data: dict, session: AsyncSession):
+        for k, v in data.items():
+            setattr(user, k, v)
+        await session.commit()
+
+        return user
+
 
 async def get_user_service():
     return UserService()
