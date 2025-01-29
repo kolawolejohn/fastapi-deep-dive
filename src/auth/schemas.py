@@ -57,3 +57,12 @@ class EmailModel(BaseModel):
 class RegisterUserResponseModel(BaseModel):
     message: str
     user: UserModel
+
+
+class PasswordResetRequestModel(BaseModel):
+    email: str
+
+
+class PasswordResetConfirmModel(BaseModel):
+    new_password: str
+    confirm_new_password: str

@@ -1,5 +1,5 @@
-from typing import List
-from fastapi import Depends, HTTPException, Request, status
+from typing import Any, List
+from fastapi import Depends, Request
 from fastapi.security import HTTPBearer
 from fastapi.security.http import HTTPAuthorizationCredentials
 from src.auth.utils import decode_token
@@ -10,6 +10,7 @@ from src.auth.service import UserService
 from src.db.models import User
 from src.errors import (
     AccessTokenRequired,
+    AccountNotVerified,
     InsufficientPermission,
     InvalidToken,
     RefreshTokenRequired,
@@ -72,7 +73,9 @@ class RoleChecker:
     def __init__(self, allowe_roles: List[str]) -> None:
         self.allowed_roles = allowe_roles
 
-    def __call__(self, current_user: User = Depends(get_current_user)):
+    def __call__(self, current_user: User = Depends(get_current_user)) -> Any:
+        if not current_user.is_verified:
+            raise AccountNotVerified()
         if current_user.role in self.allowed_roles:
             return True
 
@@ -81,11 +84,3 @@ class RoleChecker:
 
 async def get_role_checker():
     return RoleChecker(["admin", "user"])
-
-
-async def admin_role_checker():
-    return RoleChecker(["admin"])
-
-
-async def user_role_checker():
-    return RoleChecker(["user", "admin"])

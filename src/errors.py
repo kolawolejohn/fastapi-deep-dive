@@ -94,6 +94,18 @@ class TagAlreadyExists(BooklyException):
     pass
 
 
+class AccountNotVerified(BooklyException):
+    """User account has not been verified"""
+
+    pass
+
+
+class PasswordNotMatch(BooklyException):
+    """User password do not match"""
+
+    pass
+
+
 class InternalServerError(BooklyException):
     """Internal server error occurred"""
 
@@ -140,6 +152,18 @@ def register_error_handlers(app: FastAPI):
             initial_detail={
                 "message": "You are not authorized to perform this action",
                 "error_code": "unauthorized_access",
+            },
+        ),
+    )
+
+    app.add_exception_handler(
+        AccountNotVerified,
+        create_exception_handler(
+            status_code=status.HTTP_404_NOT_FOUND,
+            initial_detail={
+                "message": "User account not verified",
+                "error_code": "account_not_verified",
+                "resolution": "please check your email and verify your account",
             },
         ),
     )
@@ -244,6 +268,17 @@ def register_error_handlers(app: FastAPI):
             initial_detail={
                 "message": "Book Not Found",
                 "error_code": "book_not_found",
+            },
+        ),
+    )
+
+    app.add_exception_handler(
+        PasswordNotMatch,
+        create_exception_handler(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            initial_detail={
+                "message": "User password do not match",
+                "error_code": "password_not_match",
             },
         ),
     )
