@@ -2,7 +2,7 @@ from pathlib import Path
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
 from src.config import Config
 
-BASE_DIR = Path(__file__).resolve().parent
+# BASE_DIR = Path(__file__).resolve().parent
 
 mail_config = ConnectionConfig(
     MAIL_USERNAME=Config.MAIL_USERNAME,
@@ -15,7 +15,7 @@ mail_config = ConnectionConfig(
     MAIL_SSL_TLS=False,
     USE_CREDENTIALS=True,
     VALIDATE_CERTS=False,
-    TEMPLATE_FOLDER=Path(BASE_DIR, "templates"),
+    # TEMPLATE_FOLDER=Path(BASE_DIR, "templates"),
 )
 
 
