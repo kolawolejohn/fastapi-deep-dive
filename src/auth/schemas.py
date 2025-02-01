@@ -8,11 +8,11 @@ from src.reviews.schemas import ReviewModel
 
 
 class UserCreateModel(BaseModel):
-    username: str = Field(maxlength=15)
-    email: str = Field(max_length=100)
+    username: str = Field(..., json_schema_extra={"maxlength": 15})
+    email: str = Field(..., json_schema_extra={"maxlength": 100})
     first_name: str
     last_name: str
-    password: str = Field(min_length=6)
+    password: str = Field(..., json_schema_extra={"minlength": 6})
 
 
 class UserModel(BaseModel):
@@ -34,8 +34,8 @@ class UserBooksModel(UserModel):
 
 
 class UserLoginModel(BaseModel):
-    email: str = Field(max_length=100)
-    password: str = Field(min_length=6)
+    email: str = Field(..., json_schema_extra={"maxlength": 100})
+    password: str = Field(..., json_schema_extra={"minlength": 6})
 
 
 class UserDetail(BaseModel):
