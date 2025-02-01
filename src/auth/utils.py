@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 import logging
 from typing import Optional
+from jwt.exceptions import DecodeError
 import uuid
 import jwt
 from passlib.context import CryptContext
@@ -47,6 +48,7 @@ def decode_token(token: str) -> Optional[dict]:
         )
 
         return token_data
+
     except jwt.PyJWTError as e:
         logging.exception(e)
         return None
