@@ -13,6 +13,14 @@ app = FastAPI(
     version=version,
     title="Bookly",
     description="Rest Api for a book review service",
+    docs_url=f"/api/{version}/docs",
+    redoc_url=f"/api/{version}/redoc",
+    contact={
+        "name": "Kolawole Ogunfowokan",
+        "email": "kolawole.oajohn@gmail.com",
+        "url": "https://github.com/kolawolejohn/fastapi-deep-dive",
+    },
+    openapi_url=f"/api/{version}/openapi.json",
 )
 
 register_error_handlers(app)
